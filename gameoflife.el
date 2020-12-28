@@ -113,25 +113,25 @@
 
     ;; for each row
     (dotimes (row gol-rows)
-      (insert "  ")
+      (insert " ")
       ;; print the cells of each line
       (dotimes (col gol-columns)
         (let* ((val (gol-get-cell row col)))
           (insert-button "██"
                          ;; 'mouse-action 'color-button-action
                          ;; 'action #'(lambda (button) (message  "!!!"))
-                         'action (lambda (button) (gol-move))
+                         'action (lambda (button) (gol-change-cell-state row col))
                          'face (gol-get-face val)
                          'mouse t
                          'mouse-face 'highlight)))
       (insert "\n"))
 
     ;; display number of moves
-    (insert (concat "\n  Generation: " (number-to-string gol-move-count) "\n\n"))
+    (insert (concat "\n Generation: " (number-to-string gol-move-count) "\n\n"))
 
     ;; check if grid successful
     (progn
-      (insert (concat "  Type " (propertize " n " 'face 'gol-face-button-next 'pointer 'finger) " to go forward one generation!")))))
+      (insert (concat " Type " (propertize " n " 'face 'gol-face-button-next 'pointer 'finger) " to go forward one generation!")))))
 
 (defun gol-get-cell (row col)
   "Get the value in (ROW, COL)."
@@ -142,7 +142,7 @@
     (elt gol-board (gol-get-index row col))))
 
 (defun gol-move ()
-  "Play a move, applying the rules of the game of life on every cell, one time."
+  "Play a move, applying the rules on every cell, one time."
   ;; make a copy of the board while calculating all new cell states
   (setq gol-board-tmp (copy-tree gol-board t))
   ;; for each row...
@@ -159,7 +159,7 @@
   (gol-draw-board))
 
 (defun compute-new-cell-state (row col)
-  "Calculate the new state of the cell at ROW and COL."
+  "Calculate the new state at (ROW, COL)."
   (let* ((former-state (gol-get-cell row col))
          (live-neighbours (gol-count-live-neighbours row col)))
     (cond
@@ -169,15 +169,21 @@
      ((= live-neighbours 3) t)))) ;; alive
 
 (defun gol-count-live-neighbours (row col)
-  "Count the number of live cells around the cell at ROW and COL."
+  "Count the number of live cells surrounding (ROW, COL)."
   (+ (if (gol-get-cell (1- row) (1- col)) 1 0)
-     (if (gol-get-cell     row  (1- col)) 1 0)
-     (if (gol-get-cell (1+ row) (1- col)) 1 0)
      (if (gol-get-cell (1- row)     col ) 1 0)
-     (if (gol-get-cell (1+ row)     col ) 1 0)
      (if (gol-get-cell (1- row) (1+ col)) 1 0)
+     (if (gol-get-cell     row  (1- col)) 1 0)
      (if (gol-get-cell     row  (1+ col)) 1 0)
+     (if (gol-get-cell (1+ row) (1- col)) 1 0)
+     (if (gol-get-cell (1+ row)     col ) 1 0)
      (if (gol-get-cell (1+ row) (1+ col)) 1 0)))
+
+(defun gol-change-cell-state (row col)
+  "Change the state of cell at (ROW, COL)."
+  (interactive)
+  (gol-set-cell gol-board row col (not (gol-get-cell row col)))
+  (gol-draw-board))
 
 (provide 'gameoflife)
 ;;; gameoflife.el ends here
