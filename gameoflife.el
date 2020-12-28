@@ -81,15 +81,17 @@
   (gol-draw-board))
 
 (defun gol-populate-board ()
-  "Populate the board with random colors."
+  "Populate the board with dead cells."
   (dotimes (row gol-rows)
     (dotimes (col gol-columns)
       (gol-set-cell gol-board
                     row
                     col
-                    (cond
-                     ((eq 0 (random 2)) nil)
-                     ((eq 1 (random 2)) t))))))
+                    nil ;; start with dead cells
+                    ;; (cond
+                    ;;  ((eq 0 (random 2)) nil)
+                    ;;  ((eq 1 (random 2)) t))
+                    ))))
 
 (defun gol-set-cell (board row col val)
   "Set the value VAL in BOARD at (ROW, COL)."
@@ -105,6 +107,18 @@
   "Get the index in the board for (ROW, COL)."
   (+ (* row gol-columns) col))
 
+(defun gol-draw-cell (row col)
+  "Redraw cell (ROW, COL)."
+  (let* ((val (gol-get-cell row col))
+         (face (gol-get-face val)))
+    (insert-button "██"
+                   ;; 'mouse-action 'color-button-action
+                   ;; 'action #'(lambda (button) (message  "!!!"))
+                   'action (lambda (button) (gol-change-cell-state row col))
+                   'face face
+                   'mouse t
+                   'mouse-face 'highlight)))
+
 (defun gol-draw-board ()
   "Draw the board."
   (let ((inhibit-read-only t))
@@ -116,14 +130,7 @@
       (insert " ")
       ;; print the cells of each line
       (dotimes (col gol-columns)
-        (let* ((val (gol-get-cell row col)))
-          (insert-button "██"
-                         ;; 'mouse-action 'color-button-action
-                         ;; 'action #'(lambda (button) (message  "!!!"))
-                         'action (lambda (button) (gol-change-cell-state row col))
-                         'face (gol-get-face val)
-                         'mouse t
-                         'mouse-face 'highlight)))
+        (gol-draw-cell row col))
       (insert "\n"))
 
     ;; display number of moves
