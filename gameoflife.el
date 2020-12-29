@@ -109,12 +109,12 @@
 
 (defun gol-draw-cell (row col)
   "Redraw cell (ROW, COL)."
-  (let* ((val (gol-get-cell row col))
+  (let* ((inhibit-read-only t)
+         (val (gol-get-cell row col))
          (face (gol-get-face val)))
     (insert-button "██"
-                   ;; 'mouse-action 'color-button-action
-                   ;; 'action #'(lambda (button) (message  "!!!"))
-                   'action (lambda (button) (gol-change-cell-state row col))
+                   'action (lambda (button)
+                             (gol-click-on-cell row col button))
                    'face face
                    'mouse t
                    'mouse-face 'highlight)))
@@ -186,11 +186,13 @@
      (if (gol-get-cell (1+ row)     col ) 1 0)
      (if (gol-get-cell (1+ row) (1+ col)) 1 0)))
 
-(defun gol-change-cell-state (row col)
-  "Change the state of cell at (ROW, COL)."
+(defun gol-click-on-cell (row col button)
+  "Change the state of cell at (ROW, COL) and update face of BUTTON."
   (interactive)
-  (gol-set-cell gol-board row col (not (gol-get-cell row col)))
-  (gol-draw-board))
+  (let* ((new-val (not (gol-get-cell row col)))
+         (new-face (gol-get-face new-val)))
+    (gol-set-cell gol-board row col new-val)
+    (button-put button 'face new-face)))
 
 (provide 'gameoflife)
 ;;; gameoflife.el ends here
