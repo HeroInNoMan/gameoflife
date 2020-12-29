@@ -66,7 +66,9 @@
   "The board width.")
 
 (define-derived-mode gol-mode special-mode "game-of-life-mode"
-  (define-key gol-mode-map (kbd "n") '(lambda () "" (interactive) (gol-move)))
+  (define-key gol-mode-map (kbd "w")     '(lambda () "" (interactive) (gol-init)))
+  (define-key gol-mode-map (kbd "r")     '(lambda () "" (interactive) (gol-populate-random)))
+  (define-key gol-mode-map (kbd "n")     '(lambda () "" (interactive) (gol-move)))
   (define-key gol-mode-map (kbd "<SPC>") '(lambda () "" (interactive) (gol-move))))
 
 ;;;###autoload
@@ -74,24 +76,23 @@
        (interactive)
        (switch-to-buffer "*game of life*")
        (gol-mode)
-       (text-scale-adjust -1)
        (gol-init))
 
 (defun gol-init ()
   "Initialize the game."
   (interactive)
   (setq gol-board (make-vector (* gol-rows gol-columns) nil))
-  ;; (gol-populate-board)
   (setq gol-move-count 0)
   (gol-draw-board))
 
-(defun gol-populate-board ()
+(defun gol-populate-random ()
   "Populate the board with dead cells."
   (dotimes (row gol-rows)
     (dotimes (col gol-columns)
       (gol-set-cell gol-board row col
                     (cond ((eq 0 (random 2)) nil)
-                          ((eq 1 (random 2)) t))))))
+                          ((eq 1 (random 2)) t)))))
+  (gol-draw-board))
 
 (defun gol-get-index (row col)
   "Get the index in the board for (ROW, COL)."
@@ -148,7 +149,13 @@
                     (propertize " n " 'face 'gol-face-button-next 'pointer 'finger)
                     " or "
                     (propertize " SPACE " 'face 'gol-face-button-next 'pointer 'finger)
-                    " to go forward one generation!"))))
+                    " to go forward one generation!\n"
+                    " Type "
+                    (propertize " w " 'face 'gol-face-button-next 'pointer 'finger)
+                    " to wipe the board.\n"
+                    " Type "
+                    (propertize " r " 'face 'gol-face-button-next 'pointer 'finger)
+                    " to populate the board with random cells."))))
 
 (defun gol-move ()
   "Play a move, applying the rules on every cell, one time."
