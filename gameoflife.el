@@ -31,19 +31,19 @@
 
 ;;; Code:
 
-(defface gol-face-dead '((t . ( :background "black"
-                                :foreground "black"
-                                :color "black"
+(defface gol-face-dead '((t . ( :background "white"
+                                :foreground "white"
+                                :color "white"
                                 ;; :width ultra-expanded
-                                :height 200
+                                ;; :height 200
                                 ;; :box ( :line-width (1 . 1) :color "grey")
                                 )))
   "Face for the dead cells"   :group 'gol-faces)
-(defface gol-face-live '((t . ( :background "yellow"
-                                :foreground "yellow"
-                                :color "yellow"
+(defface gol-face-live '((t . ( :background "black"
+                                :foreground "black"
+                                :color "black"
                                 ;; :width ultra-expanded
-                                :height 200
+                                ;; :height 200
                                 ;; :box ( :line-width (1 . 1) :color "grey")
                                 )))
   "Face for the living cells" :group 'gol-faces)
@@ -120,10 +120,13 @@
   (let* ((inhibit-read-only t)
          (val (gol-get-cell row col))
          (face (gol-get-face val)))
-    (insert-button "█"
+    (insert-button (if val "⬛" "⬜")
                    'action (lambda (button)
-                             (gol-click-on-cell row col button))
+                             (gol-flip-cell button))
                    'face face
+                   'row row
+                   'col col
+                   'follow-link t
                    'mouse t
                    'mouse-face 'highlight)))
 
@@ -185,13 +188,28 @@
      (if (gol-get-cell (1+ row)     col ) 1 0)
      (if (gol-get-cell (1+ row) (1+ col)) 1 0)))
 
-(defun gol-click-on-cell (row col button)
+(defun gol-flip-cell (button)
   "Change the state of cell at (ROW, COL) and update face of BUTTON."
   (interactive)
-  (let* ((new-val (not (gol-get-cell row col)))
-         (new-face (gol-get-face new-val)))
+  (let* ((inhibit-read-only t)
+         (row (button-get button 'row))
+         (col (button-get button 'col))
+         (new-val (not (gol-get-cell row col)))
+         (new-face (gol-get-face new-val))
+         (button-pos (button-start button)))
     (gol-set-cell gol-board row col new-val)
-    (button-put button 'face new-face)))
+    (goto-char button-pos)
+    (delete-char 1)
+    (insert-button (if new-val "⬛" "⬜")
+                   'action (lambda (button)
+                             (gol-flip-cell button))
+                   'face new-face
+                   'row row
+                   'col col
+                   'follow-link t
+                   'mouse t
+                   'mouse-face 'highlight)))
+
 
 (provide 'gameoflife)
 ;;; gameoflife.el ends here
