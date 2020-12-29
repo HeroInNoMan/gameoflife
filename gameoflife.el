@@ -107,8 +107,14 @@
     (elt gol-board (gol-get-index row col))))
 
 (defun gol-set-cell (board row col val)
-  "Set the value VAL in BOARD at (ROW, COL)."
-  (aset board (gol-get-index row col) val))
+  "Set the value VAL in BOARD at (ROW, COL) if different from current value."
+  (unless (cell-eq (gol-get-cell row col) val)
+    (aset board (gol-get-index row col) val)))
+
+(defun cell-eq (cell1 cell2)
+  "Return t if CELL1 and CELL2 have the same value, nil otherwise."
+  (or (and cell1 cell2)
+      (and (not cell1) (not cell2))))
 
 (defun gol-get-face (value)
   "Get face for VALUE."
