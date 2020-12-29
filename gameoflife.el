@@ -59,10 +59,10 @@
 (defvar gol-move-count 0
   "The number of moves performed.")
 
-(defvar gol-rows 20
+(defvar gol-rows 35
   "The board height.")
 
-(defvar gol-columns 20
+(defvar gol-columns 35
   "The board width.")
 
 (define-derived-mode gol-mode special-mode "game-of-life-mode"
