@@ -31,31 +31,24 @@
 
 ;;; Code:
 
-(define-derived-mode gol-mode special-mode "game-of-life-mode"
-  (define-key gol-mode-map (kbd "n") '(lambda () "" (interactive) (gol-move))))
-
-;;;###autoload
-(defun game-of-life () "Start the Game of Life!"
-       (interactive)
-       (switch-to-buffer "*game of life*")
-       (gol-mode)
-       (text-scale-adjust 1)
-       (gol-init))
-
-(require 'cl-lib)
-
 (defface gol-face-dead '((t . ( :background "black"
                                 :foreground "black"
+                                :color "black"
+                                ;; :width ultra-expanded
+                                :height 200
                                 ;; :box ( :line-width (1 . 1) :color "grey")
                                 )))
   "Face for the dead cells"   :group 'gol-faces)
 (defface gol-face-live '((t . ( :background "yellow"
                                 :foreground "yellow"
+                                :color "yellow"
+                                ;; :width ultra-expanded
+                                :height 200
                                 ;; :box ( :line-width (1 . 1) :color "grey")
                                 )))
   "Face for the living cells" :group 'gol-faces)
 
-(defface gol-face-button-next '((t . (:background "black"  :foreground "white" :weight bold))) "Face for the button of the 0th color" :group 'gol-faces)
+(defface gol-face-button-next '((t . (:background "black"  :foreground "white" :weight bold))) "Face for the keys allowed" :group 'gol-faces)
 
 (defvar gol-board nil
   "The matrix containing the values representing the cells.")
@@ -66,17 +59,29 @@
 (defvar gol-move-count 0
   "The number of moves performed.")
 
-(defvar gol-rows 35
+(defvar gol-rows 20
   "The board height.")
 
-(defvar gol-columns 35
+(defvar gol-columns 20
   "The board width.")
+
+(define-derived-mode gol-mode special-mode "game-of-life-mode"
+  (define-key gol-mode-map (kbd "n") '(lambda () "" (interactive) (gol-move)))
+  (define-key gol-mode-map (kbd "<SPC>") '(lambda () "" (interactive) (gol-move))))
+
+;;;###autoload
+(defun game-of-life () "Start the Game of Life!"
+       (interactive)
+       (switch-to-buffer "*game of life*")
+       (gol-mode)
+       (text-scale-adjust -1)
+       (gol-init))
 
 (defun gol-init ()
   "Initialize the game."
   (interactive)
   (setq gol-board (make-vector (* gol-rows gol-columns) nil))
-  (gol-populate-board)
+  ;; (gol-populate-board)
   (setq gol-move-count 0)
   (gol-draw-board))
 
@@ -84,14 +89,21 @@
   "Populate the board with dead cells."
   (dotimes (row gol-rows)
     (dotimes (col gol-columns)
-      (gol-set-cell gol-board
-                    row
-                    col
-                    nil ;; start with dead cells
-                    ;; (cond
-                    ;;  ((eq 0 (random 2)) nil)
-                    ;;  ((eq 1 (random 2)) t))
-                    ))))
+      (gol-set-cell gol-board row col
+                    (cond ((eq 0 (random 2)) nil)
+                          ((eq 1 (random 2)) t))))))
+
+(defun gol-get-index (row col)
+  "Get the index in the board for (ROW, COL)."
+  (+ (* row gol-columns) col))
+
+(defun gol-get-cell (row col)
+  "Get the value in (ROW, COL)."
+  (when (and (>= row 0)
+             (< row gol-rows)
+             (>= col 0)
+             (< col gol-columns))
+    (elt gol-board (gol-get-index row col))))
 
 (defun gol-set-cell (board row col val)
   "Set the value VAL in BOARD at (ROW, COL)."
@@ -103,16 +115,12 @@
                   (if value "live"
                     "dead"))))
 
-(defun gol-get-index (row col)
-  "Get the index in the board for (ROW, COL)."
-  (+ (* row gol-columns) col))
-
 (defun gol-draw-cell (row col)
   "Redraw cell (ROW, COL)."
   (let* ((inhibit-read-only t)
          (val (gol-get-cell row col))
          (face (gol-get-face val)))
-    (insert-button "██"
+    (insert-button "█"
                    'action (lambda (button)
                              (gol-click-on-cell row col button))
                    'face face
@@ -132,21 +140,12 @@
       (dotimes (col gol-columns)
         (gol-draw-cell row col))
       (insert "\n"))
-
-    ;; display number of moves
-    (insert (concat "\n Generation: " (number-to-string gol-move-count) "\n\n"))
-
-    ;; check if grid successful
-    (progn
-      (insert (concat " Type " (propertize " n " 'face 'gol-face-button-next 'pointer 'finger) " to go forward one generation!")))))
-
-(defun gol-get-cell (row col)
-  "Get the value in (ROW, COL)."
-  (when (and (>= row 0)
-             (< row gol-rows)
-             (>= col 0)
-             (< col gol-columns))
-    (elt gol-board (gol-get-index row col))))
+    (insert (concat "\n Generation: " (number-to-string gol-move-count) "\n\n"
+                    " Type "
+                    (propertize " n " 'face 'gol-face-button-next 'pointer 'finger)
+                    " or "
+                    (propertize " SPACE " 'face 'gol-face-button-next 'pointer 'finger)
+                    " to go forward one generation!"))))
 
 (defun gol-move ()
   "Play a move, applying the rules on every cell, one time."
