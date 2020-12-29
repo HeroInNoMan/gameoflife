@@ -170,9 +170,14 @@
       (gol-set-cell gol-board-tmp row col (compute-new-cell-state row col))))
   ;; increment move count
   (setq-local gol-move-count (1+ gol-move-count))
+  ;; set values to real board
+  (update-board)
   ;; redraw the board
-  (setq gol-board gol-board-tmp)
   (gol-draw-board))
+
+(defun update-board ()
+  "Update real board with values from tmp board."
+  (setq gol-board gol-board-tmp))
 
 (defun compute-new-cell-state (row col)
   "Calculate the new state at (ROW, COL)."
